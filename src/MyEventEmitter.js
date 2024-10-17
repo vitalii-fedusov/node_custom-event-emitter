@@ -41,20 +41,21 @@ class MyEventEmitter {
     }
   }
   prependOnceListener(event, cb) {
+    const wrapper = (...args) => {
+      cb(...args);
+      this.off(event, wrapper);
+    };
+
     if (this.events.has(event)) {
-      this.events.get(event).unshift(cb);
+      this.events.get(event).unshift(wrapper);
     } else {
-      this.events.set(event, [cb]);
+      this.events.set(event, [wrapper]);
     }
   }
   removeAllListeners(eventName) {
-    if (!eventName) {
-      this.events.clear();
-
-      return;
+    if (this.events.has(eventName)) {
+      this.events.set(eventName, []);
     }
-
-    this.events.get(eventName);
   }
   listenerCount(event) {
     if (this.events.has(event)) {
