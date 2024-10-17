@@ -5,6 +5,14 @@ class MyEventEmitter {
   constructor() {
     this.events = new Map();
   }
+  _onceWrapper(event, cb) {
+    const wrapper = (...args) => {
+      cb(...args);
+      this.off(event, wrapper);
+    };
+
+    return wrapper;
+  }
   on(event, ...callbacks) {
     if (!this.events.has(event)) {
       this.events.set(event, [...callbacks]);
@@ -13,18 +21,17 @@ class MyEventEmitter {
     }
   }
   once(event, cb) {
-    const wrapper = (...args) => {
-      cb(...args);
-      this.off(event, wrapper);
-    };
-
-    this.on(event, wrapper);
+    this.on(event, this._onceWrapper(event, cb));
   }
   off(event, cb) {
-    this.events.set(
-      event,
-      this.events.get(event).filter((listener) => listener !== cb),
-    );
+    const listeners = this.events.get(event);
+
+    if (listeners) {
+      this.events.set(
+        event,
+        listeners.filter((listener) => listener !== cb),
+      );
+    }
   }
   emit(event, ...args) {
     if (this.events.has(event)) {
@@ -41,15 +48,12 @@ class MyEventEmitter {
     }
   }
   prependOnceListener(event, cb) {
-    const wrapper = (...args) => {
-      cb(...args);
-      this.off(event, wrapper);
-    };
+    const prependOnceWrapper = this._onceWrapper(event, cb);
 
     if (this.events.has(event)) {
-      this.events.get(event).unshift(wrapper);
+      this.events.get(event).unshift(prependOnceWrapper);
     } else {
-      this.events.set(event, [wrapper]);
+      this.events.set(event, [prependOnceWrapper]);
     }
   }
   removeAllListeners(eventName) {
