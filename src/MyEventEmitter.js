@@ -5,55 +5,55 @@ class MyEventEmitter {
   constructor() {
     this.events = new Map();
   }
-  _onceWrapper(event, cb) {
+  _onceWrapper(eventName, cb) {
     const wrapper = (...args) => {
       cb(...args);
-      this.off(event, wrapper);
+      this.off(eventName, wrapper);
     };
 
     return wrapper;
   }
-  on(event, ...callbacks) {
-    if (!this.events.has(event)) {
-      this.events.set(event, [...callbacks]);
+  on(eventName, ...callbacks) {
+    if (!this.events.has(eventName)) {
+      this.events.set(eventName, [...callbacks]);
     } else {
-      this.events.get(event).push(...callbacks);
+      this.events.get(eventName).push(...callbacks);
     }
   }
-  once(event, cb) {
-    this.on(event, this._onceWrapper(event, cb));
+  once(eventName, cb) {
+    this.on(eventName, this._onceWrapper(eventName, cb));
   }
-  off(event, cb) {
-    const listeners = this.events.get(event);
+  off(eventName, cb) {
+    const listeners = this.events.get(eventName);
 
     if (listeners) {
       this.events.set(
-        event,
+        eventName,
         listeners.filter((listener) => listener !== cb),
       );
     }
   }
-  emit(event, ...args) {
-    if (this.events.has(event)) {
-      for (const listener of this.events.get(event)) {
+  emit(eventName, ...args) {
+    if (this.events.has(eventName)) {
+      for (const listener of this.events.get(eventName)) {
         listener(...args);
       }
     }
   }
-  prependListener(event, callback) {
-    if (!this.events.has(event)) {
-      this.events.set(event, [callback]);
+  prependListener(eventName, callback) {
+    if (!this.events.has(eventName)) {
+      this.events.set(eventName, [callback]);
     } else {
-      this.events.get(event).unshift(callback);
+      this.events.get(eventName).unshift(callback);
     }
   }
-  prependOnceListener(event, cb) {
-    const prependOnceWrapper = this._onceWrapper(event, cb);
+  prependOnceListener(eventName, cb) {
+    const prependOnceWrapper = this._onceWrapper(eventName, cb);
 
-    if (this.events.has(event)) {
-      this.events.get(event).unshift(prependOnceWrapper);
+    if (this.events.has(eventName)) {
+      this.events.get(eventName).unshift(prependOnceWrapper);
     } else {
-      this.events.set(event, [prependOnceWrapper]);
+      this.events.set(eventName, [prependOnceWrapper]);
     }
   }
   removeAllListeners(eventName) {
@@ -61,9 +61,9 @@ class MyEventEmitter {
       this.events.set(eventName, []);
     }
   }
-  listenerCount(event) {
-    if (this.events.has(event)) {
-      return this.events.get(event).length;
+  listenerCount(eventName) {
+    if (this.events.has(eventName)) {
+      return this.events.get(eventName).length;
     }
 
     return 0;
